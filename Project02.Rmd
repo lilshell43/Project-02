@@ -2,7 +2,9 @@
 title: "Project 2"
 author: "Shelnes Elie"
 date: "10/13/2020"
-output: github_document
+output:
+  github_document: default
+  rmarkdown::github_document: default
 params:
   hub: weekday_is_monday
 ---
@@ -25,6 +27,8 @@ library(tree)
 library(purrr)
 library(knitr)
 library(rmarkdown)
+
+
 
 ```
 
@@ -242,16 +246,18 @@ boostTbl <- table(data.frame(pred = predict(boostTree, newsDataTest), true = new
 
 ```
 
-```{r message = FALSE}
+```{r message = FALSE, results = "hide"}
+
 render_html_fun <- function(hub_in){
   rmarkdown::render('Project-02.Rproj',
-                    output_file = paste0('Project2', hub_in, "_", '.md'),
-                    params = list(hub = hub_in))}
+                    output_file = paste0('Project2', hub_in, "_", '.html'),
+                    params = list(hub = hub_in, set_title = hub))}
 
 
 hubs_input <- c("weekday_is_monday", "weekday_is_tuesday", "weekday_is_wednesday", 
                 "weekday_is_thursday", "weekday_is_friday", "weekday_is_saturday", 
                 "weekday_is_sunday")
+
 
 walk(hubs_input, render_html_fun)
 
