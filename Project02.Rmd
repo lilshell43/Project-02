@@ -240,16 +240,18 @@ boostTbl <- table(data.frame(pred = predict(boostTree, newsDataTest), true = new
 1-c(boost = sum(diag(boostTbl)/sum(boostTbl)))
 
 
-#-----------------------------------------------------------------------
+```
 
-
+```{r message = FALSE}
 render_html_fun <- function(hub_in){
   rmarkdown::render('Project-02.Rproj',
-                    output_file = paste0('Project2', hub_in, "_", '.html'),
+                    output_file = paste0('Project2', hub_in, "_", '.md'),
                     params = list(hub = hub_in))}
 
 
-hubs_input <- c("weekday_is_monday", "weekday_is_tuesday", "weekday_is_wednesday", "weekday_is_thursday", "weekday_is_friday", "weekday_is_saturday", "weekday_is_sunday")
+hubs_input <- c("weekday_is_monday", "weekday_is_tuesday", "weekday_is_wednesday", 
+                "weekday_is_thursday", "weekday_is_friday", "weekday_is_saturday", 
+                "weekday_is_sunday")
 
 walk(hubs_input, render_html_fun)
 
