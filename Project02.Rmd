@@ -1,0 +1,258 @@
+---
+title: "Project 2"
+author: "Shelnes Elie"
+date: "10/13/2020"
+output: github_document
+params:
+  hub: weekday_is_monday
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+# Packages Required
+library(tidyverse)
+library(caret)
+
+# install.packages("arsenal")
+library(arsenal)
+
+# install.packages("treefit")
+library(treefit)
+
+library(tree)
+library(purrr)
+library(knitr)
+library(rmarkdown)
+
+```
+
+
+
+```{r readin data, echo = FALSE}
+
+# Reading in the data utilizing relative path and current working directory
+news0 <- as_tibble(read.csv("OnlineNewsPopularity.csv"))
+# str(news)
+# attributes(news)
+
+# Filter data by day
+if (params$hub == "weekday_is_monday"){
+news1 <- filter(news0, weekday_is_monday == 1) %>%
+  select(-url)} else if (params$hub == "weekday_is_tuesday"){
+news1 <- filter(news0, weekday_is_tuesday == 1) %>%
+  select(-url)} else if (params$hub == "weekday_is_wednesday"){
+news1 <- filter(news0, weekday_is_wednesday == 1) %>%
+  select(-url)} else if (params$hub == "weekday_is_thursday"){
+news1 <- filter(news0, weekday_is_thursday == 1) %>%
+  select(-url)} else if (params$hub == "weekday_is_friday"){
+news1 <- filter(news0, weekday_is_friday == 1) %>%
+  select(-url)} else if (params$hub == "weekday_is_saturday"){
+news1 <- filter(news0, weekday_is_saturday == 1) %>%
+  select(-url)} else if (params$hub == "weekday_is_sunday"){
+news1 <- filter(news0, weekday_is_sunday == 1) %>%
+  select(-url)}
+
+# Sample and create train/test data
+set.seed(1)
+train <- sample(1:nrow(news1), size = nrow(news1)*0.7)
+test <- dplyr::setdiff(1:nrow(news1), train)
+newsDataTrain <- news1[train, ]
+newsDataTest <- news1[test, ]
+
+```
+
+# _Introduction_
+
+The data in this project represents the online news popularity. This dataset summarizes a heterogeneous set of features about articles published by Mashable in a period of two years. The goal is to predict the number of shares in social networks (popularity).Some of the variables used are:  
+  
+  + weekday_is/is_weekend = represents what day of the week or is it the weekend.  
+  + shares = # of shares/target  
+  + LDA = Close to LDA topic  
+  + n_tokens_content = Number of words in the content  
+  + data_channel_is_lifestyle = Is data channel 'Lifestyle'?  
+  + data_channel_is_entertainment = Is data channel 'Entertainment'?  
+  + data_channel_is_bus = Is data channel 'Business'?  
+  + data_channel_is_socmed = Is data channel 'Social Media'?  
+  + data_channel_is_tech = Is data channel 'Tech'?  
+  + data_channel_is_world = Is data channel 'World'?  
+
+# _Summarization_
+
+The below summary describes the measure of center for shares.
+
+```{r summarization, echo = FALSE}
+
+# Summary Statistics
+params$hub
+
+summary(news1$shares)
+
+```
+
+
+
+```{r graphs_setup, echo = FALSE}
+# Plots / Preparing Data
+
+#Data channel is lifestyle
+lifestyle <- filter(newsDataTrain,  data_channel_is_lifestyle == 1) %>%
+  select( data_channel_is_lifestyle, shares,  n_tokens_content)
+
+    lifestyle$data_channel_is_lifestyle <- case_when(
+      lifestyle$data_channel_is_lifestyle==1 ~ "Lifestyle")
+
+lifestyle <-rename(lifestyle, data_channel = data_channel_is_lifestyle)
+
+
+#Data channel is entertainment
+entertainment <- filter(newsDataTrain,  data_channel_is_entertainment == 1) %>%
+  select( data_channel_is_entertainment, shares,  n_tokens_content)
+
+    entertainment$data_channel_is_entertainment <- case_when(
+      entertainment$data_channel_is_entertainment==1 ~ "Entertainment")
+
+entertainment <-rename(entertainment, data_channel = data_channel_is_entertainment)
+
+
+#Data channel is bus
+bus <- filter(newsDataTrain,  data_channel_is_bus == 1) %>%
+  select( data_channel_is_bus, shares,  n_tokens_content)
+
+    bus$data_channel_is_bus <- case_when(
+      bus$data_channel_is_bus==1 ~ "Bus")
+
+bus <-rename(bus, data_channel = data_channel_is_bus) %>%
+  filter(shares < 3000) # Eliminate outlier
+
+
+#Data channel is socmed
+socmed <- filter(newsDataTrain,  data_channel_is_socmed == 1) %>%
+  select( data_channel_is_socmed, shares,  n_tokens_content)
+
+    socmed$data_channel_is_socmed <- case_when(
+      socmed$data_channel_is_socmed==1 ~ "socmed")
+
+socmed <-rename(socmed, data_channel = data_channel_is_socmed)
+
+
+#Data channel is tech
+tech <- filter(newsDataTrain,  data_channel_is_tech == 1) %>%
+  select( data_channel_is_tech, shares,  n_tokens_content)
+
+    tech$data_channel_is_tech <- case_when(
+      tech$data_channel_is_tech==1 ~ "tech")
+
+tech <-rename(tech, data_channel = data_channel_is_tech)
+
+
+#Data channel is world
+world <- filter(newsDataTrain,  data_channel_is_world == 1) %>%
+  select( data_channel_is_world, shares,  n_tokens_content)
+
+    world$data_channel_is_world <- case_when(
+      world$data_channel_is_world==1 ~ "world")
+
+world <-rename(world, data_channel = data_channel_is_world)
+
+
+# Union Data
+channels <- union(lifestyle, entertainment)
+channels <- union(channels, bus)
+channels <- union(channels, socmed)
+channels <- union(channels, tech)
+channels <- union(channels, world)
+```
+
+# _Graphs_
+
+## Barchart
+The below barchart shows the count for each data channel when it equals 1 or is active. As you can see, world, tech, and entertainment's frequency are very high while lifestyle and socmed are very low.
+
+```{r plot1}
+# Plots
+
+ggplot(channels, aes(data_channel)) +
+  geom_bar()
+```
+
+## Boxplot
+Below displays boxplots for shares broken by data channel.We can see that there's outliers for the shares. All the data channels seem to have condensed measure of center, especially bus.This should make predicting shares easier for some data_channels.
+
+```{r plot2}
+ggplot(channels, aes(x = data_channel, y = shares))+ 
+  geom_jitter(aes(color = data_channel)) + ggtitle("Boxplot for Shares") + 
+  geom_boxplot() 
+```
+
+## Scatterplot
+The scatterplots below represent the total words in the content vs shares broken down by each data_channel. We can see that all the data_channels try to the words below 2000 except for some outliers. This must be to maintain the attention of the readers as the shares are the highest in this area.
+
+```{r plot3}
+ggplot(channels, aes(x = n_tokens_content, y = shares, group = data_channel)) + geom_point(aes(color = data_channel)) + geom_smooth(method = 'lm', color = 'green') +
+  ggtitle("Number of Words in Content vs Shares") + facet_wrap(~data_channel)
+
+```
+
+
+# _Modeling_
+Goal: Create models for predicting the shares variable.
+
+## Regression Tree  
+A (not ensemble) tree-based model chosen using leave one out cross validation  
+Root MSE is used on the test data set to see how well the model is.  
+```{r regressiontree}
+
+# a (not ensemble) tree-based model chosen using leave one out cross validation
+# Regression Tree
+treeFit <- tree(shares ~ . ,data = newsDataTrain)
+plot(treeFit); text(treeFit)
+
+cvTree <- cv.tree(treeFit); cvTree
+
+# Visual of How CV Error Changes w/# of Nodes
+plot(cvTree$size, cvTree$dev, type="b")
+
+# Predictions usingpredict
+pred <- predict(treeFit, newdata=dplyr::select(newsDataTest,-shares))
+
+# Root MSE
+sqrt(mean((pred-newsDataTest$shares)^2))
+
+```
+
+
+## Boosted Tree  
+Model chosen using cross-validation  
+Utilizing misclassification rate to evaluate the model.  
+```{r boostedtree, warning=FALSE}
+
+boostTree <- train(shares ~ ., data = newsDataTrain, method = "gbm",
+trControl = trainControl(method = "repeatedcv", number = 4, repeats = 2),
+preProcess = c("center", "scale"), verbose = FALSE)
+boostTree
+
+boostTbl <- table(data.frame(pred = predict(boostTree, newsDataTest), true = newsDataTest$shares))
+
+
+#misclassificatoon rate to evaluate model
+1-c(boost = sum(diag(boostTbl)/sum(boostTbl)))
+
+
+#-----------------------------------------------------------------------
+
+
+render_html_fun <- function(hub_in){
+  rmarkdown::render('Project-02.Rproj',
+                    output_file = paste0('Project2', hub_in, "_", '.html'),
+                    params = list(hub = hub_in))}
+
+
+hubs_input <- c("weekday_is_monday", "weekday_is_tuesday", "weekday_is_wednesday", "weekday_is_thursday", "weekday_is_friday", "weekday_is_saturday", "weekday_is_sunday")
+
+walk(hubs_input, render_html_fun)
+
+```
+
+
