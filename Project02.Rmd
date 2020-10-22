@@ -246,6 +246,17 @@ boostTbl <- table(data.frame(pred = predict(boostTree, newsDataTest), true = new
 
 ```
 
+## Linear Regression Model
+
+The final model we will examine is a linear regression model. The model will be fit with all possible predictors using the `lm` function. Also, predictions utilizing this model will be made on the test set using `predict`. 
+
+```{r, warning = FALSE}
+lmfit <- lm(shares ~ ., data = newsDataTrain)
+lmpred <- predict(lmfit, newdata = newsDataTest)
+head(lmpred)        
+```
+
+
 ```{r message = FALSE, results = "hide"}
 
 render_html_fun <- function(hub_in){
