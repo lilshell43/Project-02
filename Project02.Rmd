@@ -6,7 +6,7 @@ output:
   github_document: default
   rmarkdown::github_document: default
 params:
-  hub: weekday_is_monday
+  hub: weekday_is_tuesday
 ---
 
 ```{r setup, include=FALSE}

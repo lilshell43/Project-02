@@ -30,10 +30,10 @@ variables used are:
 
 The below summary describes the measure of center for shares.
 
-    ## [1] "weekday_is_monday"
+    ## [1] "weekday_is_tuesday"
 
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-    ##       1     919    1400    3647    2700  690400
+    ##      42     897    1300    3202    2500  441000
 
 *Graphs*
 ========
@@ -104,13 +104,13 @@ Root MSE is used on the test data set to see how well the model is.
     cvTree <- cv.tree(treeFit); cvTree
 
     ## $size
-    ## [1] 3 2 1
+    ## [1] 2 1
     ## 
     ## $dev
-    ## [1] 872908710392 881873024193 876391576936
+    ## [1] 565530011812 566298346999
     ## 
     ## $k
-    ## [1]        -Inf 11745665602 91735314491
+    ## [1]       -Inf 7045478073
     ## 
     ## $method
     ## [1] "deviance"
@@ -129,7 +129,7 @@ Root MSE is used on the test data set to see how well the model is.
     # Root MSE
     sqrt(mean((pred-newsDataTest$shares)^2))
 
-    ## [1] 18251.86
+    ## [1] 9237.271
 
 Boosted Tree
 ------------
@@ -144,31 +144,31 @@ Utilizing misclassification rate to evaluate the model.
 
     ## Stochastic Gradient Boosting 
     ## 
-    ## 4662 samples
+    ## 5173 samples
     ##   59 predictor
     ## 
     ## Pre-processing: centered (59), scaled (59) 
     ## Resampling: Cross-Validated (4 fold, repeated 2 times) 
-    ## Summary of sample sizes: 3498, 3495, 3497, 3496, 3495, 3496, ... 
+    ## Summary of sample sizes: 3880, 3880, 3880, 3879, 3880, 3879, ... 
     ## Resampling results across tuning parameters:
     ## 
     ##   interaction.depth  n.trees  RMSE      Rsquared     MAE     
-    ##   1                   50      12613.42  0.008803732  3719.534
-    ##   1                  100      12740.91  0.007071247  3756.895
-    ##   1                  150      12810.78  0.007225911  3807.365
-    ##   2                   50      12314.28  0.022417965  3648.679
-    ##   2                  100      12443.18  0.021406636  3686.139
-    ##   2                  150      12543.78  0.019391978  3701.252
-    ##   3                   50      12445.04  0.014508240  3700.085
-    ##   3                  100      12540.10  0.013951534  3770.684
-    ##   3                  150      12650.68  0.010157017  3814.283
+    ##   1                   50      9323.527  0.016867585  2967.935
+    ##   1                  100      9345.392  0.015870580  2969.552
+    ##   1                  150      9368.200  0.014382361  2984.313
+    ##   2                   50      9499.259  0.008494050  3044.991
+    ##   2                  100      9629.726  0.006403485  3134.724
+    ##   2                  150      9701.127  0.005522256  3198.644
+    ##   3                   50      9539.187  0.008038925  3064.336
+    ##   3                  100      9702.543  0.005541985  3169.903
+    ##   3                  150      9811.011  0.005407412  3275.017
     ## 
     ## Tuning parameter 'shrinkage' was held constant at a value of 0.1
     ## 
     ## Tuning parameter 'n.minobsinnode' was held constant at a value of 10
     ## RMSE was used to select the optimal model using the smallest value.
     ## The final values used for the model were n.trees = 50, interaction.depth =
-    ##  2, shrinkage = 0.1 and n.minobsinnode = 10.
+    ##  1, shrinkage = 0.1 and n.minobsinnode = 10.
 
     boostTbl <- table(data.frame(pred = predict(boostTree, newsDataTest), true = newsDataTest$shares))
 
@@ -177,7 +177,7 @@ Utilizing misclassification rate to evaluate the model.
     1-c(boost = sum(diag(boostTbl)/sum(boostTbl)))
 
     ##     boost 
-    ## 0.9994997
+    ## 0.9981958
 
 Linear Regression Model
 -----------------------
@@ -191,8 +191,8 @@ predictions utilizing this model will be made on the test set using
     lmpred <- predict(lmfit, newdata = newsDataTest)
     head(lmpred)        
 
-    ##          1          2          3          4          5          6 
-    ## -1230.2107  -282.8058  1140.7074 -2563.9944 -1006.7021   960.7877
+    ##           1           2           3           4           5           6 
+    ##    4.908893  808.351384 3035.406427 3080.271758  151.045623 1999.203964
 
     render_html_fun <- function(hub_in){
       rmarkdown::render('Project-02.Rproj',
